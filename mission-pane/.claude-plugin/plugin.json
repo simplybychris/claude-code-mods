@@ -1,0 +1,5 @@
+{
+  "name": "mission-pane",
+  "version": "0.1.0",
+  "description": "A side pane (/ops) with this session's subagents and background jobs, live, and a sound and a toast as each one ends."
+}
