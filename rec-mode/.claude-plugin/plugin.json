@@ -1,0 +1,13 @@
+{
+  "name": "rec-mode",
+  "version": "0.1.0",
+  "description": "Recording mode: blurs emails, keys, IP addresses and user names on screen; hover over a blurred spot to reveal it. /rec turns it on and off.",
+  "userConfig": {
+    "names": {
+      "type": "string",
+      "title": "Extra names to blur",
+      "description": "Comma-separated words to blur as well (a GitHub handle, a client's name). A word that starts with one is blurred too, so Marcin also covers Marcinowi.",
+      "default": ""
+    }
+  }
+}
