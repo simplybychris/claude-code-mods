@@ -7,6 +7,7 @@ describe('ops text', () => {
     expect(describeCall('Bash', { command: 'npm   test\n --watch=false' })).toBe('Bash npm test --watch=false')
     expect(describeCall('Bash', { command: 'x', description: 'Run the tests' })).toBe('Bash Run the tests')
     expect(describeCall('Read', { file_path: '/work/app/src/register.tsx' })).toBe('Read register.tsx')
+    expect(describeCall('Edit', { file_path: 'C:\\work\\app\\src\\ops.ts' })).toBe('Edit ops.ts')
     expect(describeCall('Grep', { pattern: 'useAuth' })).toBe('Grep "useAuth"')
     expect(describeCall('WebFetch', { url: 'https://docs.example.com/a/b' })).toBe('WebFetch docs.example.com')
     expect(describeCall('mcp__github__list_issues', {})).toBe('github list_issues')

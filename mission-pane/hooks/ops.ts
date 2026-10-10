@@ -12,7 +12,7 @@ const ACTION_CHARS = 48
 // What a tool call is doing, in a few words: `Bash npm test`, `Read register.tsx`.
 export function describeCall(tool: string, input: Record<string, unknown>): string {
   const str = (k: string) => (typeof input[k] === 'string' ? (input[k] as string) : '')
-  const base = (p: string) => p.slice(p.lastIndexOf('/') + 1)
+  const base = (p: string) => p.slice(Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\')) + 1)
   let detail = ''
   switch (tool) {
     case 'Bash':
