@@ -12,7 +12,9 @@ const WARN_SHARE = 0.2 // amber under this share of the cache lifetime
 const LIMIT_LABELS: Record<string, string> = { five_hour: '5h', seven_day: 'week' }
 const HANDOFF_PERCENT = 50 // the handoff button shows from this share of the context window
 const HANDOFF_LABEL = 'handoff →'
-const HANDOFF_PROMPT = 'Użyj skilla session-handoff i zapisz handoff tej sesji.'
+const HANDOFF_SKILL = 'session-handoff'
+const HANDOFF_PROMPT = `Użyj skilla ${HANDOFF_SKILL} i zapisz handoff tej sesji.`
+const HANDOFF_MISSING = `handoff: brak skilla ${HANDOFF_SKILL}, zobacz README moda cache-bar`
 
 const COLOR = {
   green: '#3fb950',
@@ -125,7 +127,14 @@ export const register: Register = (on, options) => {
               hotkey="h"
               variant="primary"
               onPress={() => {
-                void $.prompt.submit({ text: HANDOFF_PROMPT, asUser: true }).catch(() => {})
+                void (async () => {
+                  const commands = await $.command.list().catch(() => null)
+                  if (commands && !commands.some(c => c.name === HANDOFF_SKILL || c.name.endsWith(`:${HANDOFF_SKILL}`))) {
+                    $.ui.toast(HANDOFF_MISSING)
+                    return
+                  }
+                  await $.prompt.submit({ text: HANDOFF_PROMPT, asUser: true })
+                })().catch(() => {})
               }}
             />
           )}

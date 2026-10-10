@@ -142,6 +142,7 @@ describe('cache-bar', () => {
 
   test('past half the context window a handoff button asks for the session-handoff skill', async ($, on) => {
     const prompts: string[] = []
+    on('command.list', () => ({ value: [{ name: 'session-handoff', description: 'Handoff', source: 'user' }] }) as any)
     on('prompt.submit', (_$, e) => {
       prompts.push((e as any).text)
       return { text: (e as any).text } as any
@@ -156,6 +157,26 @@ describe('cache-bar', () => {
     const working = await $.ui.mount({ surface: 'desktop', ...band(140, false, true) } as any)
     expect(await working.find({ type: 'Button', key: 'handoff' })).toBeUndefined() // not mid-turn
     await working.unmount()
+  })
+
+  test('without the session-handoff skill the button says so and sends nothing', async ($, on) => {
+    const prompts: string[] = []
+    const toasts: string[] = []
+    on('command.list', () => ({ value: [{ name: 'compact', description: 'Compact', source: 'builtin' }] }) as any)
+    on('prompt.submit', (_$, e) => {
+      prompts.push((e as any).text)
+      return { text: (e as any).text } as any
+    })
+    on('ui.toast', (_$, e) => {
+      toasts.push((e as any).text)
+      return { value: undefined } as any
+    })
+    await start($, on, SUBSCRIPTION, {}, { tokens: 512_000, window: 1_000_000, percent: 51 })
+    const ui = await $.ui.mount({ surface: 'desktop', ...band() } as any)
+    await ui.press({ key: 'handoff' })
+    expect(prompts).toEqual([])
+    expect(toasts).toEqual(['handoff: brak skilla session-handoff, zobacz README moda cache-bar'])
+    await ui.unmount()
   })
 
   test('no handoff button under half the window', async ($, on) => {
