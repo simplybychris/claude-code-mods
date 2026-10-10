@@ -41,8 +41,12 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     const result = await next(e)
     const user = await $.env.get('USER').catch(() => undefined)
+    const winUser = await $.env.get('USERNAME').catch(() => undefined)
     const home = await $.env.get('HOME').catch(() => undefined)
-    const users = [user, home?.split('/').filter(Boolean).pop()].filter((u): u is string => typeof u === 'string')
+    const winHome = await $.env.get('USERPROFILE').catch(() => undefined)
+    const users = [user, winUser, ...[home, winHome].map(h => h?.split(/[\\/]/).filter(Boolean).pop())].filter(
+      (u): u is string => typeof u === 'string',
+    )
     ctx = { users, names }
     await $.command
       .register({

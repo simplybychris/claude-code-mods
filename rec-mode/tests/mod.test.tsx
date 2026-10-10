@@ -8,8 +8,8 @@ const SURFACES = ['desktop', 'terminal'] as const
 
 // Stands for the engine beneath the mod: a Mac user, a store, the status line,
 // and the app's own drawing, which records the props it was handed.
-async function start($: Engine, on: On, stored: Record<string, unknown> = {}) {
-  mock.env(on, { HOME: '/Users/tomek', USER: 'tomek' })
+async function start($: Engine, on: On, stored: Record<string, unknown> = {}, env: Record<string, string> = { HOME: '/Users/tomek', USER: 'tomek' }) {
+  mock.env(on, env)
   mock.store(on, stored)
   const status: (string | undefined)[] = []
   const handed: Record<string, any> = {}
@@ -75,6 +75,15 @@ describe('rec-mode', () => {
     await rec($, 'on')
     await rec($, 'on')
     expect(status.at(-1)).toBe(STATUS)
+  })
+
+  test('on Windows the account comes from USERPROFILE', async ($, on) => {
+    const { handed } = await start($, on, {}, { USERPROFILE: 'C:\\Users\\tomek' })
+    await rec($, 'on')
+    const ui = await $.ui.mount({ surface: 'desktop', plugin: 'rec-mode', component: 'CommandOutput', requestId: 'c1', props: { command: 'whoami', text: 'pc\\tomek' } } as any)
+    expect((await ui.drawn()).type).toBe('engine')
+    expect(handed.CommandOutput.text).toBe('pc\\•••••')
+    await ui.unmount()
   })
 
   test('a session starts on when it was left on', async ($, on) => {
