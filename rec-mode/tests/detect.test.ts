@@ -9,7 +9,7 @@ const found = (text: string, c: Context = ctx) => findSpans(text, c).map(s => te
 
 describe('what rec-mode blurs', () => {
   test('emails', () => {
-    expect(found('Napisz do jan.kowalski+yt@firma.co.uk albo ola@x.io.')).toEqual(['jan.kowalski+yt@firma.co.uk', 'ola@x.io'])
+    expect(found('Napisz do jan.kowalski+yt@example.co.uk albo ola@x.io.')).toEqual(['jan.kowalski+yt@example.co.uk', 'ola@x.io'])
   })
 
   test('provider keys, JWTs, bearer tokens and KEY=value', () => {

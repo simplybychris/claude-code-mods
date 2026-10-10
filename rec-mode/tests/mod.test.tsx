@@ -94,12 +94,12 @@ describe('rec-mode', () => {
   test('a reply with private data: grey bars a pointer reveals one by one, the rest stays Markdown', async ($, on) => {
     await start($, on)
     await rec($, 'on')
-    const text = 'Serwer stoi na **203.0.113.20**, login `tomek`, mail ola@firma.pl.\n\nReszta odpowiedzi bez danych.'
+    const text = 'Serwer stoi na **203.0.113.20**, login `tomek`, mail ola@example.com.\n\nReszta odpowiedzi bez danych.'
     for (const surface of SURFACES) {
       const ui = await $.ui.mount({ surface, ...reply(text) } as any)
       const tree = await ui.drawn()
       const found = bars(tree)
-      expect(found.map(b => b.text)).toEqual(['203.0.113.20', 'tomek', 'ola@firma.pl'])
+      expect(found.map(b => b.text)).toEqual(['203.0.113.20', 'tomek', 'ola@example.com'])
       for (const b of found) expect(b.scope).toMatch(/^rec[0-9a-z]+-\d$/)
       expect(new Set(found.map(b => b.scope)).size).toBe(3)
       expect(markdown(tree)).toEqual(['Reszta odpowiedzi bez danych.'])
@@ -119,7 +119,7 @@ describe('rec-mode', () => {
 
   test('off, or nothing private: the app draws the reply itself', async ($, on) => {
     await start($, on)
-    let ui = await $.ui.mount({ surface: 'desktop', ...reply('mail ola@firma.pl') } as any)
+    let ui = await $.ui.mount({ surface: 'desktop', ...reply('mail ola@example.com') } as any)
     expect((await ui.drawn()).type).toBe('engine')
     await ui.unmount()
     await rec($, 'on')
@@ -135,16 +135,16 @@ describe('rec-mode', () => {
       plugin: 'rec-mode',
       component: 'UserMessage',
       requestId: 'u1',
-      props: { text: 'wyślij to na ola@firma.pl', origin: { kind: 'composer' }, isExpanded: true },
+      props: { text: 'wyślij to na ola@example.com', origin: { kind: 'composer' }, isExpanded: true },
     }
     const ui = await $.ui.mount({ surface: 'desktop', ...prompt } as any)
-    expect(bars(await ui.drawn()).map(b => b.text)).toEqual(['ola@firma.pl'])
+    expect(bars(await ui.drawn()).map(b => b.text)).toEqual(['ola@example.com'])
     await ui.unmount()
 
     const note = { ...prompt, requestId: 'u2', props: { ...prompt.props, origin: { kind: 'task-notification' } } }
     const ui2 = await $.ui.mount({ surface: 'desktop', ...note } as any)
     expect((await ui2.drawn()).type).toBe('engine')
-    expect(handed.UserMessage.text).toBe('wyślij to na ••••••••••••')
+    expect(handed.UserMessage.text).toBe('wyślij to na •••••••••••••••')
     await ui2.unmount()
   })
 
@@ -159,14 +159,14 @@ describe('rec-mode', () => {
         tool_use_id: 't1',
         tool: 'Bash',
         isErrored: false,
-        output: { stdout: 'user.email=ola@firma.pl\ncore.editor=vim\n', stderr: '', interrupted: false },
+        output: { stdout: 'user.email=ola@example.com\ncore.editor=vim\n', stderr: '', interrupted: false },
       },
     }
     for (const surface of SURFACES) {
       const ui = await $.ui.mount({ surface, ...result } as any)
       const tree = await ui.drawn()
-      expect(bars(tree).map(b => b.text)).toEqual(['ola@firma.pl'])
-      expect(textOf(tree)).toBe('user.email=ola@firma.plcore.editor=vim')
+      expect(bars(tree).map(b => b.text)).toEqual(['ola@example.com'])
+      expect(textOf(tree)).toBe('user.email=ola@example.comcore.editor=vim')
       await ui.unmount()
     }
   })
