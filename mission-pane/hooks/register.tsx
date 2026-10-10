@@ -14,7 +14,7 @@ const TICK_MS = 1_000
 const KEEP_DONE = 10
 const MAX_STEPS = 300
 const PROMPT_LINES = 10
-const SOUND = '/System/Library/Sounds/Glass.aiff'
+const SOUND = 'sounds/done.wav'
 const SOUND_GAP_MS = 3_000
 const COLOR = { run: '#3fb950', wait: '#d29922', done: '#8b949e', fail: '#f85149', kind: '#58a6ff', action: '#d2a8ff', head: '#e6edf3' }
 
@@ -70,7 +70,7 @@ async function finished($: EngineInterface, label: string, ms: number, status: s
   $.ui.toast(`${failed ? '✗' : '✓'} ${label} · ${elapsed(ms)}${failed ? ` · ${status}` : ''}`)
   if (now - lastSoundAt >= SOUND_GAP_MS) {
     lastSoundAt = now
-    void $.process.run(['afplay', SOUND], { timeoutMs: 5_000 }).catch(() => {})
+    void $.audio.play({ asset: SOUND }).catch(() => {})
   }
   $.ui.invalidate('ui.render')
 }

@@ -15,7 +15,7 @@ const USAGE = { input_tokens: 1_000, output_tokens: 50, cache_read_input_tokens:
 async function start($: Engine, on: On, agents: AgentInfo[] = [], transcripts: Record<string, unknown[]> = {}, files: Record<string, string> = {}) {
   const clock = mock.clock(on, { now: 1_000_000 })
   const toasts: string[] = []
-  const sounds: string[][] = []
+  const sounds: string[] = []
   const open = new Set<string>()
   let taskSeq = 0
   on('session.start', (_$, e) => ({ sessionId: 's', cwd: e.cwd }) as any)
@@ -24,9 +24,9 @@ async function start($: Engine, on: On, agents: AgentInfo[] = [], transcripts: R
     toasts.push((e as any).text)
     return { value: undefined } as any
   })
-  on('process.run', (_$, e) => {
-    sounds.push([...e.argv])
-    return { value: { exitCode: 0, stdout: '', stderr: '' } } as any
+  on('audio.play', (_$, e) => {
+    sounds.push(e.clip.asset ?? '')
+    return { value: undefined } as any
   })
   on('ui.open', (_$, e) => {
     open.add(e.id)
@@ -114,7 +114,7 @@ describe('mission-pane', () => {
     agents[0]!.status = 'completed'
     await $.turn.complete({ reason: 'answer', answer: '', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'a1' } as any)
     expect(toasts).toContain('✓ Explore · Find auth handlers · 2m14s')
-    expect(sounds).toEqual([['afplay', '/System/Library/Sounds/Glass.aiff']])
+    expect(sounds).toEqual(['sounds/done.wav'])
     const ui = await $.ui.mount({ surface: 'desktop', ...PANE } as any)
     expect(await ui.find({ type: 'Text', text: '✓' })).toBeDefined()
     await ui.unmount()
