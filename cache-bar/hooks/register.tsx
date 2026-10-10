@@ -48,7 +48,7 @@ export const register: Register = (on, options) => {
     const now = await $.session.usage().catch(() => null)
     if (now) {
       latest = reading(now.context, now.rateLimits)
-      await labelResets($, latest.limits, resetClock)
+      labelResets(latest.limits, resetClock)
     }
     $.ui.invalidate('ui.render')
     timer?.cancel()
@@ -66,7 +66,7 @@ export const register: Register = (on, options) => {
   on('session.measure', async ($, e, next) => {
     const result = await next(e)
     latest = reading(e.context, e.rateLimits)
-    await labelResets($, latest.limits, resetClock)
+    labelResets(latest.limits, resetClock)
     $.ui.invalidate('ui.render')
     return result
   })
@@ -155,16 +155,30 @@ async function configuredTtl($: EngineInterface): Promise<CacheTtl | null> {
   return fromSettings === '5m' || fromSettings === '1h' ? fromSettings : null
 }
 
-// When each window resets, as the system clock writes it (`date` knows the local time zone).
-async function labelResets($: EngineInterface, limits: readonly CacheBarLimit[], into: Record<string, string>) {
+// When each window resets, in the local time zone.
+function labelResets(limits: readonly CacheBarLimit[], into: Record<string, string>) {
   for (const l of limits) {
     if (!l.resetsAt || into[l.resetsAt] !== undefined) continue
     const ms = Date.parse(l.resetsAt)
     if (!Number.isFinite(ms)) continue
-    const format = l.kind === 'seven_day' ? '+%a %H:%M' : '+%H:%M'
-    const out = await $.process.run(['date', '-r', String(Math.floor(ms / 1000)), format], { timeoutMs: 2_000 }).catch(() => null)
-    const text = out && out.exitCode === 0 ? out.stdout.trim() : ''
+    const text = localTime(ms, l.kind === 'seven_day')
     if (text) into[l.resetsAt] = text
+  }
+}
+
+function localTime(ms: number, withDay: boolean) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      ...(withDay ? { weekday: 'short' as const } : {}),
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(new Date(ms))
+    const part = (type: string) => parts.find(p => p.type === type)?.value ?? ''
+    const time = `${part('hour')}:${part('minute')}`
+    return withDay ? `${part('weekday')} ${time}` : time
+  } catch {
+    return ''
   }
 }
 

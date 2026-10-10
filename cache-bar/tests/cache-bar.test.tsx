@@ -3,6 +3,14 @@ import type { On } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
 
 const T0 = 1_000_000
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const two = (n: number) => String(n).padStart(2, '0')
+// The local time of a moment, from Date's own local fields.
+const local = (ms: number, withDay = false) => {
+  const d = new Date(ms)
+  const time = `${two(d.getHours())}:${two(d.getMinutes())}`
+  return withDay ? `${DAYS[d.getDay()]} ${time}` : time
+}
 const SUBSCRIPTION = [
   { kind: 'five_hour', percentUsed: 10, resetsAt: new Date(T0 + 3 * 3_600_000).toISOString() },
   { kind: 'seven_day', percentUsed: 59, resetsAt: new Date(T0 + 4 * 86_400_000).toISOString() },
@@ -22,17 +30,10 @@ async function start(
   on: On,
   rateLimits: unknown[] = SUBSCRIPTION,
   env: Record<string, string> = {},
-  hasDate = true,
   context = { tokens: 109_000, window: 1_000_000, percent: 11 },
 ) {
   const clock = mock.clock(on, { now: T0 })
   mock.env(on, env)
-  // Stands for `date -r <secs> <format>`: the local time of a reset.
-  on('process.run', (_$, e) =>
-    hasDate
-      ? ({ value: { exitCode: 0, stdout: e.argv[3]?.includes('%a') ? 'Sat 14:20\n' : '16:40\n', stderr: '' } } as any)
-      : ({ deny: 'no date here' } as any),
-  )
   on('settings.read', () => ({ value: {} }) as any)
   on('session.start', (_$, e) => ({ sessionId: 's', cwd: e.cwd }) as any)
   on('session.usage', () => ({
@@ -64,9 +65,10 @@ describe('cache-bar', () => {
       const ui = await $.ui.mount({ surface, ...band() } as any)
       expect(await ui.find({ type: 'Text', text: '109k' })).toBeDefined()
       expect(await ui.find({ type: 'Text', text: '10%' })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: ' · resets 16:40' })).toBeDefined() // the 5h window, always
+      expect(await ui.find({ type: 'Text', text: ` · resets ${local(T0 + 3 * 3_600_000)}` })).toBeDefined() // the 5h window, always
       expect(await ui.find({ type: 'Text', text: '59%' })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: /Sat/ })).toBeUndefined() // the week only when it runs high
+      expect(await ui.find({ type: 'Text', text: / · resets / })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: ` · resets ${local(T0 + 4 * 86_400_000, true)}` })).toBeUndefined() // the week only when it runs high
       expect(await ui.find({ type: 'Text', text: /cache/ })).toBeUndefined()
       expect(await ui.find({ type: 'Text', text: 'engine band' })).toBeDefined() // stacked, not replaced
       await ui.unmount()
@@ -134,14 +136,7 @@ describe('cache-bar', () => {
     const ui = await $.ui.mount({ surface: 'desktop', ...band() } as any)
     expect((await ui.find({ type: 'Text', text: '88%' }))?.props.color).toBe('#f85149')
     expect((await ui.find({ type: 'Text', text: '80%' }))?.props.color).toBe('#d29922')
-    expect(await ui.find({ type: 'Text', text: ' · resets Sat 14:20' })).toBeDefined()
-    await ui.unmount()
-  })
-
-  test('without the system clock the reset reads as time left', async ($, on) => {
-    await start($, on, SUBSCRIPTION, {}, false)
-    const ui = await $.ui.mount({ surface: 'desktop', ...band() } as any)
-    expect(await ui.find({ type: 'Text', text: ' · resets in 3h00' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: ` · resets ${local(T0 + 3 * 86_400_000, true)}` })).toBeDefined()
     await ui.unmount()
   })
 
@@ -151,7 +146,7 @@ describe('cache-bar', () => {
       prompts.push((e as any).text)
       return { text: (e as any).text } as any
     })
-    await start($, on, SUBSCRIPTION, {}, true, { tokens: 512_000, window: 1_000_000, percent: 51 })
+    await start($, on, SUBSCRIPTION, {}, { tokens: 512_000, window: 1_000_000, percent: 51 })
     const idle = await $.ui.mount({ surface: 'desktop', ...band() } as any)
     expect(await idle.find({ type: 'Button', key: 'handoff' })).toBeDefined()
     await idle.press({ key: 'handoff' })
