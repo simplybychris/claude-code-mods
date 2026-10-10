@@ -149,7 +149,7 @@ describe('cache-bar', () => {
     const prompts: string[] = []
     on('prompt.submit', (_$, e) => {
       prompts.push((e as any).text)
-      return {} as any
+      return { text: (e as any).text } as any
     })
     await start($, on, SUBSCRIPTION, {}, true, { tokens: 512_000, window: 1_000_000, percent: 51 })
     const idle = await $.ui.mount({ surface: 'desktop', ...band() } as any)
