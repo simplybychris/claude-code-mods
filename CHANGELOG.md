@@ -4,7 +4,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/), wersje: [SemVe
 
 ## [0.1.0] - 2026-10-10
 
-Zadanie: pierwsze publiczne wydanie czterech modów · data: 2026-10-10 · impl: Claude Opus 5.5 · review: `claude plugin validate` i `claude plugin test` (Claude Code 2.1.295), audyt prywatności grepem · commity: `36593ec`..`7cf8494`
+Zadanie: pierwsze publiczne wydanie czterech modów · data: 2026-10-10 · impl: Claude Opus 5.5 · review: `claude plugin validate` i `claude plugin test` (Claude Code 2.1.295), audyt prywatności grepem · commity: `36593ec`..`403cddd`
 
 ### Dodane
 
